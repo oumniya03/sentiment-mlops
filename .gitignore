@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+mlruns/
+batch_results/
+data/*.csv
+!data/batch_test_sample.csv

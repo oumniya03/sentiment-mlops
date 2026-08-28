@@ -1,0 +1,12 @@
+subscription_id: "07ebf9a1-f9d5-4abb-b772-82982eb57507"
+resource_group: "rg-sentiment-project"
+workspace_name: "sentiment-workspace"
+compute_cluster: "cpu-cluster"
+
+model:
+  name: "sentiment-classifier"
+  local_path: "models"   # dossier contenant tfidf_vectorizer.joblib, logistic_model.joblib, model_pipeline.joblib, metrics.json
+
+batch_endpoint:
+  name: "sentiment-batch-endpoint"
+  deployment_name: "sentiment-batch-deployment"

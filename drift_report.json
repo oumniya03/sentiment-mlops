@@ -1,0 +1,14 @@
+{
+  "char_len": {
+    "psi": 0.1337,
+    "drift_detected": false,
+    "ks_statistic": 0.0664,
+    "ks_pvalue": 0.9698
+  },
+  "word_count": {
+    "psi": 0.1622,
+    "drift_detected": false,
+    "ks_statistic": 0.0806,
+    "ks_pvalue": 0.8755
+  }
+}
