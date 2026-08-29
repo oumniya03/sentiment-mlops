@@ -63,6 +63,21 @@ Le déploiement n'a pas fonctionné du premier coup — les problèmes suivants 
 
 Ces problèmes ont été diagnostiqués via les logs `stderrlogs.txt` / `20_image_build_log.txt` du portail Azure ML Studio, en isolant à chaque itération le message d'erreur réel (souvent masqué par un `SystemExit: 42` générique en première lecture).
 
+## CI/CD (GitHub Actions)
+
+Le pipeline `.github/workflows/deploy.yml` automatise l'enregistrement du modèle dans le registre Azure ML (et, optionnellement, le redéploiement du batch endpoint) à chaque push touchant `models/`, `src/`, `pipelines/` ou `config.yml`, ou à la demande via déclenchement manuel (`workflow_dispatch`, avec un flag `deploy_batch` pour inclure ou non le redéploiement de l'endpoint).
+
+**Authentification** : via un **Service Principal** Azure (créé avec `az ad sp create-for-rbac`, scope limité au resource group `rg-sentiment-project`), stocké comme secret GitHub (`AZURE_CREDENTIALS`) et utilisé par l'action `azure/login`. C'est une authentification différente de celle utilisée en local (`AzureCliCredential`) : un Service Principal n'est pas concerné par le bug de "Tenant mismatch" rencontré avec le compte Microsoft personnel utilisé en local (cf. section précédente) — le CI/CD est donc en réalité **plus fiable** que l'exécution manuelle pour ce type d'opération.
+
+**Étapes du workflow :**
+1. Checkout du repo
+2. Installation de Python 3.11 + dépendances (`azure-ai-ml`, `azure-identity`, `pyyaml`)
+3. Connexion à Azure via le Service Principal
+4. Enregistrement du modèle dans le registre (`pipelines/training_pipeline.py --register-only`)
+5. (Optionnel, déclenchement manuel uniquement) Redéploiement du batch endpoint
+
+**Validé** : un déclenchement manuel du workflow a fait passer le modèle `sentiment-classifier` de la v1 à la v2 dans le registre Azure ML, confirmant que le pipeline CI/CD s'authentifie et opère correctement sur le workspace de bout en bout (run réussi en 1m36s).
+
 ## Structure du projet
 
 ```
@@ -118,6 +133,8 @@ python test_batch_endpoint.py   # ou invocation manuelle via ml.azure.com
 # 7. Monitoring de dérive sur de nouvelles données
 python monitor.py --new-data <chemin_vers_nouvelles_donnees.csv>
 ```
+
+Les étapes 2 (et optionnellement 4) sont aussi automatisées via CI/CD : voir la section « CI/CD (GitHub Actions) » ci-dessus. Un push touchant `models/`, `src/`, `pipelines/` ou `config.yml` déclenche automatiquement l'enregistrement du modèle ; le redéploiement du batch endpoint peut être déclenché manuellement depuis l'onglet Actions de GitHub.
 
 ## Monitoring de dérive
 
